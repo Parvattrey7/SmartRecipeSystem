@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kitchen Mate - Smart Recipes</title>
+    <link rel="icon" type="image/png" href="km2.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="h-screen w-full overflow-hidden flex">
+
+<div class="bg-noise"></div>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+
+<!-- 1. COOKING & RECIPE VIEWER MODAL -->
+<div id="cookingModal" class="fixed inset-0 z-50 modal-overlay flex items-center justify-center p-4 sm:p-6">
+    <div class="modal-content w-full max-w-6xl bg-slate-900 border border-white/10 rounded-2xl shadow-2xl overflow-hidden relative flex flex-col max-h-[95vh] lg:max-h-[90vh]">
+        <button onclick="closeCookingModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white bg-black/50 hover:bg-black/80 w-10 h-10 rounded-full flex items-center justify-center z-50 transition-colors backdrop-blur-sm border border-white/10">
+            <i class="ph-bold ph-x text-xl"></i>
+        </button>
+
+        <div class="h-32 sm:h-40 w-full bg-slate-800 relative shrink-0">
+            <img id="modal-img" src="" class="w-full h-full object-cover opacity-40">
+            <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent"></div>
+            <div class="absolute bottom-4 left-6 right-6 lg:left-10 lg:right-10 flex items-end justify-between">
+                <div>
+                    <span id="modal-badge" class="inline-block px-3 py-1 bg-green-500/20 text-green-400 border border-green-500/30 rounded-lg text-[10px] font-bold uppercase tracking-widest mb-2 shadow-lg">Cooking Mode</span>
+                    <h2 id="modal-title" class="text-3xl sm:text-4xl font-bold text-white drop-shadow-md">Recipe Name</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-6 lg:p-10 bg-slate-900/50">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 h-full">
+
+                <div class="lg:col-span-7 flex flex-col gap-6">
+                    <div class="w-full rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-black aspect-video relative group">
+                        <iframe id="modal-video" class="absolute inset-0 w-full h-full" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+
+                    <div class="glass-panel p-6 rounded-2xl flex-1 border border-white/5">
+                        <h3 class="text-white font-bold text-lg mb-4 flex items-center gap-2">
+                            <i class="ph-duotone ph-shopping-basket text-blue-400 text-2xl"></i> Ingredient Status
+                        </h3>
+                        <div id="modal-missing-alert" class="mb-4 p-3 rounded-xl text-xs"></div>
+                        <p class="text-xs text-gray-400 leading-relaxed">Ensure you have all items prepped before starting the video tutorial above. Click any step on the right to mark your progress.</p>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-5 flex flex-col h-full">
+                    <div class="glass-panel p-6 rounded-2xl flex-1 flex flex-col h-[500px] lg:h-auto border border-white/5 shadow-xl bg-slate-900/80">
+
+                        <div class="mb-5 bg-black/40 p-4 rounded-xl border border-white/5 flex items-center justify-between gap-2 shadow-inner shrink-0 transition-colors duration-300" id="timer-container">
+                            <div class="flex items-center gap-3">
+                                <i id="timer-icon" class="ph-duotone ph-timer text-3xl text-blue-400 transition-colors duration-300"></i>
+                                <div>
+                                    <h4 id="timer-title" class="text-white font-bold text-sm transition-colors duration-300">Kitchen Timer</h4>
+                                    <p id="timer-subtitle" class="text-[10px] text-gray-500 transition-colors duration-300">Alarm sound enabled</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="flex items-center bg-slate-900 rounded-lg px-2 py-1.5 border border-white/10 shadow-inner">
+                                    <input type="number" id="timer-m" min="0" max="99" value="05" class="w-7 bg-transparent text-white font-mono text-lg text-center outline-none">
+                                    <span class="text-gray-500 font-mono text-lg mx-0.5">:</span>
+                                    <input type="number" id="timer-s" min="0" max="59" value="00" class="w-7 bg-transparent text-white font-mono text-lg text-center outline-none">
+                                </div>
+                                <div class="flex flex-col gap-1">
+                                    <button id="timer-start-btn" onclick="toggleTimer()" class="w-8 h-8 rounded-lg bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center transition-all shadow-lg shadow-blue-500/20 shrink-0">
+                                        <i class="ph-bold ph-play"></i>
+                                    </button>
+                                    <button onclick="resetTimer()" class="w-8 h-6 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white flex items-center justify-center transition-all text-xs shrink-0" title="Reset">
+                                        <i class="ph-bold ph-arrow-counter-clockwise"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h3 class="text-white font-bold text-lg mb-4 flex items-center gap-2 border-b border-white/10 pb-4 shrink-0">
+                            <i class="ph-duotone ph-cooking-pot text-orange-400 text-2xl"></i> Step-by-Step
+                        </h3>
+
+                        <div id="modal-instructions" class="space-y-1 overflow-y-auto flex-1 pr-4 custom-scrollbar"></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="p-4 lg:px-10 border-t border-white/10 shrink-0 bg-slate-950 flex justify-end gap-3" id="modal-footer-actions"></div>
+    </div>
+</div>
+
+<!-- 2. MY PANTRY (INGREDIENT SELECTOR) MODAL -->
+<div id="pantryModal" class="fixed inset-0 z-50 modal-overlay flex items-center justify-center p-4 sm:p-6">
+    <div class="modal-content w-full max-w-3xl bg-slate-900 border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+        <div class="p-6 border-b border-white/10 flex items-center justify-between bg-slate-950">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                    <i class="ph-fill ph-package text-xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-white">Your Kitchen Pantry</h3>
+                    <p class="text-xs text-gray-400">Toggle ingredients you currently have in stock to update all 40 recipes</p>
+                </div>
+            </div>
+            <button onclick="closePantryModal()" class="text-gray-400 hover:text-white w-9 h-9 rounded-full bg-white/5 flex items-center justify-center">
+                <i class="ph-bold ph-x"></i>
+            </button>
+        </div>
+        <div class="p-6 overflow-y-auto custom-scrollbar flex-1">
+            <div id="pantry-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3"></div>
+        </div>
+        <div class="p-4 px-6 border-t border-white/10 bg-slate-950 flex justify-between items-center">
+            <span id="pantry-summary" class="text-xs text-gray-400">0 ingredients selected</span>
+            <button onclick="closePantryModal()" class="px-6 py-2 bg-green-600 hover:bg-green-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-green-500/20 transition-all">
+                Save & Update Recipes
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- 3. SHOPPING CART MODAL (FOR MISSING INGREDIENTS) -->
+<div id="cartModal" class="fixed inset-0 z-50 modal-overlay flex items-center justify-center p-4 sm:p-6">
+    <div class="modal-content w-full max-w-xl bg-slate-900 border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+        <div class="p-6 border-b border-white/10 flex items-center justify-between bg-slate-950">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400">
+                    <i class="ph-fill ph-shopping-cart text-xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-white">Missing Ingredients Cart</h3>
+                    <p class="text-xs text-gray-400">Buy missing items to unlock more recipes</p>
+                </div>
+            </div>
+            <button onclick="closeCartModal()" class="text-gray-400 hover:text-white w-9 h-9 rounded-full bg-white/5 flex items-center justify-center">
+                <i class="ph-bold ph-x"></i>
+            </button>
+        </div>
+        <div id="cart-items-list" class="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-3"></div>
+        <div class="p-4 px-6 border-t border-white/10 bg-slate-950 flex justify-between items-center">
+            <div>
+                <p class="text-[10px] text-gray-400 uppercase tracking-wider">Estimated Total</p>
+                <p id="cart-total-price" class="text-lg font-bold text-white">₹0</p>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="clearCart()" class="px-4 py-2 bg-white/5 hover:bg-white/10 text-gray-300 text-xs font-medium rounded-xl border border-white/10">Clear</button>
+                <button onclick="checkoutToPantry()" class="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-blue-500/20 flex items-center gap-1.5">
+                    <i class="ph-bold ph-check-circle"></i> Buy & Add to Pantry
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SIDEBAR WITH YOUR km2.png & km.png LOGOS -->
+<aside class="w-20 md:w-64 h-full glass-sidebar flex flex-col z-20 shrink-0 transition-all duration-300">
+    <div class="p-6 flex items-center gap-3 mb-2">
+        <div class="w-8 h-8 rounded-full overflow-hidden border border-white/10 relative shrink-0">
+            <img src="km2.png" onerror="this.src='km.png'" class="w-full h-full object-cover" alt="Kitchen Mate Logo">
+        </div>
+        <a href="#" class="font-bold text-lg text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400 hidden md:block hover:opacity-80 transition-opacity">Kitchen Mate</a>
+    </div>
+
+    <div class="flex-1 overflow-y-auto px-0 space-y-6">
+        <div class="space-y-1">
+            <p class="px-6 text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3 hidden md:block opacity-60">Management</p>
+            <button onclick="openPantryModal()" class="menu-btn w-full flex items-center gap-4 px-6 py-3 text-sm text-gray-400 transition-colors text-left group hover:text-white hover:bg-white/5">
+                <i class="ph-fill ph-package text-lg group-hover:text-blue-400"></i>
+                <span class="hidden md:block">Your Inventory</span>
+                <span id="sidebar-pantry-count" class="ml-auto hidden md:inline-block text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-bold">0</span>
+            </button>
+            <button onclick="filterRecipes('all', document.querySelector('.filter-btn'))" class="menu-btn active w-full flex items-center gap-4 px-6 py-3 text-sm text-gray-400 transition-colors text-left group">
+                <i class="ph-fill ph-chef-hat text-lg"></i> <span class="hidden md:block">Recipes</span>
+            </button>
+            <button onclick="openCartModal()" class="menu-btn w-full flex items-center gap-4 px-6 py-3 text-sm text-gray-400 transition-colors text-left group hover:text-white hover:bg-white/5">
+                <i class="ph-fill ph-shopping-cart text-lg group-hover:text-purple-400"></i>
+                <span class="hidden md:block">Shopping Cart</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Student Project Profile Footer with km.png -->
+    <div class="p-4 border-t border-white/5 mt-auto">
+        <div class="glass-panel p-3 rounded-xl hidden md:flex items-center gap-3">
+            <img src="km.png" onerror="this.src='km2.png'" class="w-9 h-9 rounded-full object-cover border border-white/10 shrink-0" alt="KM Logo">
+            <div class="truncate">
+                <p class="text-[10px] uppercase tracking-widest text-emerald-400 font-bold">MCA Project</p>
+                <p class="text-xs font-bold text-white truncate">Parv Attrey</p>
+                <p class="text-[10px] text-gray-400 truncate">Chandigarh University</p>
+            </div>
+        </div>
+    </div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<main class="flex-1 flex flex-col h-full relative z-10 min-w-0">
+    <header class="glass-header h-20 px-4 md:px-8 flex items-center justify-between shrink-0 gap-4">
+        <div>
+            <h1 class="text-xl font-bold text-white hidden md:block">Smart Recipes</h1>
+            <p class="text-xs text-gray-400 hidden md:block">Based on what you have in stock</p>
+        </div>
+
+        <div class="flex items-center gap-4 md:gap-6 ml-auto">
+            <div class="relative hidden sm:block">
+                <i class="ph-bold ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"></i>
+                <input type="text" id="recipe-search" onkeyup="renderRecipes()" placeholder="Find a recipe..." class="w-64 bg-slate-800/50 border border-white/10 rounded-xl py-2 pl-9 pr-4 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-green-500/50 focus:ring-1 focus:ring-green-500/50">
+            </div>
+
+            <button onclick="openPantryModal()" class="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 px-4 py-2.5 rounded-xl text-xs font-bold border border-emerald-500/30 transition-all flex items-center gap-2">
+                <i class="ph-bold ph-package text-sm"></i>
+                <span class="hidden sm:inline">My Stock</span>
+            </button>
+
+            <button onclick="openCartModal()" class="bg-slate-800 hover:bg-slate-700 text-white px-4 md:px-5 py-2.5 rounded-xl text-sm font-semibold border border-white/10 transition-all flex items-center gap-2">
+                <i class="ph-bold ph-shopping-cart"></i>
+                <span id="cart-count">0</span>
+            </button>
+        </div>
+    </header>
+
+    <div class="flex-1 overflow-y-auto p-4 md:p-8">
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
+            <div class="flex flex-wrap gap-2">
+                <button onclick="filterRecipes('all', this)" class="filter-btn active-filter px-4 py-2 rounded-full text-xs font-medium bg-green-500 text-white shadow-lg shadow-green-500/20 transition-all">All Recipes</button>
+                <button onclick="filterRecipes('ready', this)" class="filter-btn px-4 py-2 rounded-full text-xs font-medium bg-white/5 text-gray-400 hover:text-white border border-white/5 transition-all">Ready to Cook</button>
+                <button onclick="filterRecipes('missing', this)" class="filter-btn px-4 py-2 rounded-full text-xs font-medium bg-white/5 text-gray-400 hover:text-white border border-white/5 transition-all">Missing Ingredients</button>
+            </div>
+            <span id="backend-status" class="text-[11px] text-gray-400 flex items-center gap-1.5"></span>
+        </div>
+
+        <div id="recipe-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-12"></div>
+    </div>
+</main>
+
+<script src="script.js"></script>
+</body>
+</html>
